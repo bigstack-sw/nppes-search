@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPPES Provider Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0e1a;color:#e8eaf0;font-family:'DM Sans',sans-serif;min-height:100vh}
+    .app{min-height:100vh;padding-bottom:80px}
+
+    /* Hero */
+    .hero{background:linear-gradient(135deg,#0d1226,#0a0e1a 50%,#0e1520);border-bottom:1px solid rgba(99,179,237,.15);padding:40px 24px 32px;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(99,179,237,.08),transparent 70%);pointer-events:none}
+    .hero-inner{max-width:960px;margin:0 auto}
+    .eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:#63b3ed;text-transform:uppercase;margin-bottom:10px}
+    .hero-title{font-family:'Syne',sans-serif;font-size:clamp(26px,4vw,44px);font-weight:800;line-height:1.05;color:#f0f4ff;margin-bottom:6px}
+    .hero-title span{color:#63b3ed}
+    .hero-sub{font-size:14px;color:#8892a4;font-weight:300;line-height:1.6;max-width:500px}
+
+    /* Notice */
+    .notice{max-width:960px;margin:18px auto 0;padding:0 24px}
+    .notice-inner{background:rgba(99,179,237,.07);border:1px solid rgba(99,179,237,.2);border-radius:10px;padding:11px 15px;font-family:'DM Mono',monospace;font-size:11px;color:#8892a4;line-height:1.9}
+    .notice-inner strong{color:#63b3ed}
+    .notice-inner code{background:rgba(0,0,0,.35);border-radius:3px;padding:1px 6px;color:#a5b4fc}
+
+    /* Search */
+    .search-panel{max-width:960px;margin:18px auto 0;padding:0 24px}
+    .search-card{background:rgba(255,255,255,.04);border:1px solid rgba(99,179,237,.18);border-radius:14px;padding:24px}
+    .search-row-1{display:grid;grid-template-columns:1fr 150px 150px;gap:10px;align-items:end;margin-bottom:10px}
+    .search-row-2{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+    @media(max-width:640px){.search-row-1,.search-row-2{grid-template-columns:1fr}}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#63b3ed}
+    .inp,.sel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:13px;color:#e8eaf0;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;-webkit-appearance:none}
+    .inp::placeholder{color:#4a5568}
+    .inp:focus,.sel:focus{border-color:#63b3ed;box-shadow:0 0 0 3px rgba(99,179,237,.12)}
+    .sel{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2363b3ed' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:28px}
+    .sel option{background:#0d1226;color:#e8eaf0}
+    .taxonomy-wrap{position:relative}
+    .taxonomy-dropdown{position:absolute;top:100%;left:0;right:0;background:#0d1226;border:1px solid rgba(99,179,237,.3);border-radius:7px;max-height:260px;overflow-y:auto;z-index:100;margin-top:3px;display:none}
+    .taxonomy-dropdown.open{display:block}
+    .taxonomy-group-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#63b3ed;padding:8px 12px 4px;background:rgba(99,179,237,.06);border-bottom:1px solid rgba(99,179,237,.1)}
+    .taxonomy-option{padding:8px 12px;font-size:12px;color:#c8d0e0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+    .taxonomy-option:hover,.taxonomy-option.highlighted{background:rgba(99,179,237,.12);color:#e8eaf0}
+    .tax-code{font-family:'DM Mono',monospace;font-size:10px;color:#63b3ed;margin-right:8px}
+    .taxonomy-option.selected{background:rgba(99,179,237,.18)}
+    .clear-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#4a5568;cursor:pointer;font-size:14px;padding:2px 4px;line-height:1}
+    .clear-btn:hover{color:#a0aec0}
+    .btn{background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:7px;padding:10px 28px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:opacity .2s,transform .1s;letter-spacing:.03em;height:40px}
+    .btn:hover{opacity:.9;transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .hint{margin-top:10px;font-size:11px;color:#4a5568;font-family:'DM Mono',monospace;line-height:1.8}
+    .hint strong{color:#718096}
+
+    /* Error */
+    .err-box{max-width:960px;margin:14px auto 0;padding:0 24px}
+    .err-inner{background:rgba(245,101,101,.1);border:1px solid rgba(245,101,101,.3);border-radius:7px;padding:11px 15px;color:#fc8181;font-size:13px;font-family:'DM Mono',monospace}
+
+    /* View Toggle */
+    .view-toggle{max-width:960px;margin:20px auto 0;padding:0 24px;display:none}
+    .toggle-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .toggle-btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;padding:8px 18px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#8892a4;cursor:pointer;transition:all .2s}
+    .toggle-btn.active{background:rgba(99,179,237,.15);border-color:rgba(99,179,237,.4);color:#63b3ed}
+    .toggle-btn:hover:not(.active){background:rgba(255,255,255,.08);color:#c8d0e0}
+    .geocode-status{font-family:'DM Mono',monospace;font-size:10px;color:#4a5568;margin-left:4px}
+
+    /* Results List */
+    .results{max-width:960px;margin:16px auto 0;padding:0 24px}
+    .results-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+    .results-count{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#f0f4ff}
+    .results-count span{color:#63b3ed}
+    .results-meta{font-family:'DM Mono',monospace;font-size:10px;color:#4a5568;letter-spacing:.05em;padding-top:3px}
+    .filter-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+    .filter-tag{font-family:'DM Mono',monospace;font-size:10px;background:rgba(99,179,237,.1);border:1px solid rgba(99,179,237,.2);color:#63b3ed;padding:2px 7px;border-radius:3px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+    @media(max-width:480px){.grid{grid-template-columns:1fr}}
+    .practice-group{margin-bottom:20px}
+    .group-header{display:flex;align-items:center;gap:10px;padding:9px 14px;margin-bottom:8px;background:rgba(99,179,237,.07);border:1px solid rgba(99,179,237,.18);border-radius:9px}
+    .group-header.solo{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.06)}
+    .group-phone{font-family:'DM Mono',monospace;font-size:12px;color:#63b3ed;font-weight:500}
+    .group-phone.solo{color:#4a5568}
+    .group-count{font-family:'DM Mono',monospace;font-size:10px;background:rgba(99,179,237,.15);color:#a0c8e8;padding:2px 8px;border-radius:12px}
+    .group-count.solo{background:rgba(255,255,255,.05);color:#4a5568}
+    .group-address{font-size:11px;color:#4a5568;flex:1;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .provider-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:16px;transition:border-color .2s,background .2s;animation:cardIn .3s ease both}
+    .provider-card:hover{border-color:rgba(99,179,237,.3);background:rgba(99,179,237,.04)}
+    .card-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+    .badge{font-family:'DM Mono',monospace;font-size:8px;font-weight:500;letter-spacing:.1em;padding:3px 6px;border-radius:3px;flex-shrink:0;margin-top:2px}
+    .badge-org{background:rgba(129,140,248,.15);color:#a5b4fc;border:1px solid rgba(129,140,248,.25)}
+    .badge-ind{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.2)}
+    .provider-name{font-size:14px;font-weight:500;color:#e8eaf0;flex:1;line-height:1.3}
+    .provider-npi{font-family:'DM Mono',monospace;font-size:9px;color:#4a5568;flex-shrink:0;padding-top:3px}
+    .provider-taxonomy{font-size:11px;color:#63b3ed;margin-bottom:8px;line-height:1.4;font-style:italic}
+    .provider-address{border-top:1px solid rgba(255,255,255,.06);padding-top:9px}
+    .addr-line{font-size:12px;color:#8892a4;line-height:1.5}
+    .addr-contact{font-family:'DM Mono',monospace;font-size:11px;color:#8892a4;margin-top:5px}
+    .addr-contact a{color:#63b3ed;text-decoration:none}
+    .addr-contact a:hover{text-decoration:underline}
+
+    /* Map */
+    #mapContainer{max-width:960px;margin:12px auto 0;padding:0 24px;display:none}
+    #map{height:540px;border-radius:12px;border:1px solid rgba(99,179,237,.2);overflow:hidden}
+    .leaflet-tile-pane{filter:brightness(.85) saturate(.7)}
+    .leaflet-popup-content-wrapper{background:#0d1629 !important;border:1px solid rgba(99,179,237,.3) !important;border-radius:8px !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important}
+    .leaflet-popup-tip{background:#0d1629 !important}
+    .leaflet-popup-content{margin:10px 14px !important}
+    .popup-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#e8eaf0;margin-bottom:3px}
+    .popup-tax{font-size:11px;color:#63b3ed;font-style:italic;margin-bottom:4px}
+    .popup-addr{font-size:11px;color:#8892a4;line-height:1.5;margin-bottom:4px}
+    .popup-phone a{font-family:'DM Mono',monospace;font-size:11px;color:#63b3ed;text-decoration:none}
+    .popup-count{font-family:'DM Mono',monospace;font-size:10px;background:rgba(99,179,237,.15);color:#a0c8e8;padding:1px 6px;border-radius:3px;display:inline-block;margin-bottom:6px}
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading{text-align:center;padding:56px 24px}
+    .spinner{width:32px;height:32px;border:2px solid rgba(99,179,237,.15);border-top-color:#63b3ed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+    .loading-txt{font-family:'DM Mono',monospace;font-size:12px;color:#4a5568;letter-spacing:.08em}
+    .empty{text-align:center;padding:56px 24px}
+    .empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+    .empty-title{font-family:'Syne',sans-serif;font-size:16px;color:#718096;margin-bottom:4px}
+    .empty-sub{font-size:12px;color:#4a5568}
+    ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:rgba(99,179,237,.2);border-radius:3px}
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">CMS · NPPES · NPI Registry</div>
+      <h1 class="hero-title">Provider <span>Search</span></h1>
+      <p class="hero-sub">Search the National Plan and Provider Enumeration System by zip code and provider type.</p>
+    </div>
+  </div>
+
+  <div class="notice">
+    <div class="notice-inner">
+      <strong>&#9881; Requires local proxy:</strong> Make sure <code>node server.js</code> is running in your terminal on <code>http://localhost:3001</code>, then search below.
+    </div>
+  </div>
+
+  <div class="search-panel">
+    <div class="search-card">
+      <div class="search-row-1">
+        <div class="field">
+          <label class="label">Zip Code(s)</label>
+          <input class="inp" id="zipInput" type="text" placeholder="e.g. 06604, 066, 10001 90210" spellcheck="false" />
+        </div>
+        <div class="field">
+          <label class="label">Entity Type</label>
+          <select class="sel" id="entityType">
+            <option value="">All Providers</option>
+            <option value="NPI-1">Individuals</option>
+            <option value="NPI-2">Organizations</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">State</label>
+          <select class="sel" id="stateFilter">
+            <option value="">All States</option>
+            <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+            <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
+            <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
+            <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
+            <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+            <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
+            <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
+            <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
+            <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
+            <option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+            <option>SD</option><option>TN</option><option>TX</option><option>UT</option>
+            <option>VT</option><option>VA</option><option>WA</option><option>WV</option>
+            <option>WI</option><option>WY</option><option>DC</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-row-2">
+        <div class="field">
+          <label class="label">Taxonomy / Specialty</label>
+          <div class="taxonomy-wrap">
+            <div style="position:relative">
+              <input class="inp taxonomy-search" id="taxonomySearch" type="text" placeholder="Search specialties, e.g. 'cardiology', 'family'..." autocomplete="off" spellcheck="false" />
+              <button class="clear-btn" id="taxonomyClear" onclick="clearTaxonomy()" style="display:none">&#10005;</button>
+            </div>
+            <div class="taxonomy-dropdown" id="taxonomyDropdown"></div>
+          </div>
+        </div>
+        <button class="btn" id="searchBtn" onclick="handleSearch()">Search</button>
+      </div>
+      <div class="hint">
+        <strong>Zip:</strong> 06604 &nbsp;&middot;&nbsp; <strong>Multiple:</strong> 06604, 10001 &nbsp;&middot;&nbsp; <strong>Prefix:</strong> 066 &nbsp;&middot;&nbsp; All filters are optional
+      </div>
+    </div>
+  </div>
+
+  <div id="errorBox" class="err-box" style="display:none">
+    <div class="err-inner" id="errorMsg"></div>
+  </div>
+
+  <!-- View Toggle: shown after search completes -->
+  <div class="view-toggle" id="viewToggle">
+    <div class="toggle-bar">
+      <button class="toggle-btn active" id="btnList" onclick="switchView('list')">&#9776; List View</button>
+      <button class="toggle-btn" id="btnMap" onclick="switchView('map')">&#128506; Map View</button>
+      <span class="geocode-status" id="geocodeStatus"></span>
+    </div>
+  </div>
+
+  <!-- Results List -->
+  <div id="resultsSection" class="results" style="display:none"></div>
+
+  <!-- Map -->
+  <div id="mapContainer">
+    <div id="map"></div>
+  </div>
+
+</div><!-- /.app -->
+
+<script>
+// ─── Taxonomy Data ────────────────────────────────────────────────────────────
+const TAXONOMY_GROUPS = [
+  { group: "Physicians — Primary Care", items: [
+    { code: "207Q00000X", desc: "Family Medicine" },
+    { code: "207R00000X", desc: "Internal Medicine" },
+    { code: "208D00000X", desc: "General Practice" },
+    { code: "207RG0100X", desc: "Internal Medicine — Geriatric Medicine" },
+    { code: "207QA0505X", desc: "Family Medicine — Adult Medicine" },
+  ]},
+  { group: "Physicians — Medical Specialties", items: [
+    { code: "207RC0000X", desc: "Cardiovascular Disease (Cardiology)" },
+    { code: "207RH0000X", desc: "Hematology" },
+    { code: "207RI0200X", desc: "Infectious Disease" },
+    { code: "207RN0300X", desc: "Nephrology" },
+    { code: "207RE0101X", desc: "Endocrinology, Diabetes & Metabolism" },
+    { code: "207RG0300X", desc: "Gastroenterology" },
+    { code: "207RP1001X", desc: "Pulmonary Disease" },
+    { code: "207RR0500X", desc: "Rheumatology" },
+    { code: "207RU0100X", desc: "Urology" },
+    { code: "2084P0800X", desc: "Psychiatry" },
+    { code: "2084N0400X", desc: "Neurology" },
+    { code: "207RO0100X", desc: "Oncology" },
+    { code: "207RA0401X", desc: "Addiction Medicine" },
+    { code: "207RA0201X", desc: "Allergy & Immunology" },
+    { code: "207RD0101X", desc: "Dermatology" },
+  ]},
+  { group: "Physicians — Surgical Specialties", items: [
+    { code: "208600000X", desc: "General Surgery" },
+    { code: "207Y00000X", desc: "Otolaryngology (ENT)" },
+    { code: "207X00000X", desc: "Orthopaedic Surgery" },
+    { code: "207T00000X", desc: "Neurological Surgery" },
+    { code: "208200000X", desc: "Plastic Surgery" },
+    { code: "207V00000X", desc: "Obstetrics & Gynecology" },
+    { code: "207ZO0101X", desc: "Ophthalmology" },
+    { code: "208VP0000X", desc: "Pain Medicine" },
+    { code: "207ZP0101X", desc: "Pathology" },
+  ]},
+  { group: "Physicians — Other", items: [
+    { code: "2086S0120X", desc: "Surgery — Vascular" },
+    { code: "207P00000X", desc: "Emergency Medicine" },
+    { code: "207U00000X", desc: "Physical Medicine & Rehabilitation" },
+    { code: "207N00000X", desc: "Nuclear Medicine" },
+    { code: "207K00000X", desc: "Anesthesiology" },
+    { code: "207ZR0400X", desc: "Radiology" },
+    { code: "2085R0202X", desc: "Diagnostic Radiology" },
+  ]},
+  { group: "Nurse Practitioners & PAs", items: [
+    { code: "363L00000X", desc: "Nurse Practitioner" },
+    { code: "363LA2100X", desc: "Nurse Practitioner — Acute Care" },
+    { code: "363LF0000X", desc: "Nurse Practitioner — Family" },
+    { code: "363LP0200X", desc: "Nurse Practitioner — Pediatrics" },
+    { code: "363LP2300X", desc: "Nurse Practitioner — Primary Care" },
+    { code: "363LS0200X", desc: "Nurse Practitioner — School" },
+    { code: "363LW0102X", desc: "Nurse Practitioner — Women's Health" },
+    { code: "363LP0808X", desc: "Nurse Practitioner — Psychiatric/Mental Health" },
+    { code: "363AM0700X", desc: "Physician Assistant" },
+  ]},
+  { group: "Mental Health", items: [
+    { code: "101Y00000X", desc: "Counselor" },
+    { code: "101YA0400X", desc: "Counselor — Addiction" },
+    { code: "101YM0800X", desc: "Counselor — Mental Health" },
+    { code: "103T00000X", desc: "Psychologist" },
+    { code: "103TC0700X", desc: "Psychologist — Clinical" },
+    { code: "104100000X", desc: "Social Worker" },
+    { code: "1041C0700X", desc: "Social Worker — Clinical" },
+    { code: "106H00000X", desc: "Marriage & Family Therapist" },
+  ]},
+  { group: "Dentistry", items: [
+    { code: "122300000X", desc: "Dentist" },
+    { code: "1223G0001X", desc: "Dentist — General Practice" },
+    { code: "1223S0112X", desc: "Oral & Maxillofacial Surgery" },
+    { code: "1223P0221X", desc: "Orthodontics" },
+    { code: "1223P0300X", desc: "Periodontics" },
+    { code: "1223E0200X", desc: "Endodontics" },
+    { code: "1223P0106X", desc: "Pediatric Dentistry" },
+  ]},
+  { group: "Vision", items: [
+    { code: "152W00000X", desc: "Optometrist" },
+    { code: "152WC0802X", desc: "Optometrist — Corneal and Contact Management" },
+    { code: "156FC0800X", desc: "Technician/Technologist — Contact Lens" },
+  ]},
+  { group: "Physical & Occupational Therapy", items: [
+    { code: "225100000X", desc: "Physical Therapist" },
+    { code: "225X00000X", desc: "Occupational Therapist" },
+    { code: "225200000X", desc: "Physical Therapy Assistant" },
+    { code: "224Z00000X", desc: "Occupational Therapy Assistant" },
+    { code: "225500000X", desc: "Respiratory Therapist" },
+  ]},
+  { group: "Chiropractic", items: [
+    { code: "111N00000X", desc: "Chiropractor" },
+    { code: "111NI0013X", desc: "Chiropractor — Independent Medical Examiner" },
+  ]},
+  { group: "Nursing", items: [
+    { code: "163W00000X", desc: "Registered Nurse" },
+    { code: "164W00000X", desc: "Licensed Practical Nurse" },
+    { code: "164X00000X", desc: "Licensed Vocational Nurse" },
+    { code: "367500000X", desc: "Nurse Anesthetist (CRNA)" },
+    { code: "366GH0300X", desc: "Nursing — Home Health" },
+  ]},
+  { group: "Pharmacy", items: [
+    { code: "183500000X", desc: "Pharmacist" },
+    { code: "183700000X", desc: "Pharmacy Technician" },
+    { code: "3336C0003X", desc: "Pharmacy — Clinical" },
+    { code: "3336L0003X", desc: "Pharmacy — Long-term Care" },
+  ]},
+  { group: "Hospitals & Facilities", items: [
+    { code: "282N00000X", desc: "General Acute Care Hospital" },
+    { code: "283Q00000X", desc: "Psychiatric Hospital" },
+    { code: "283X00000X", desc: "Rehabilitation Hospital" },
+    { code: "286500000X", desc: "Critical Access Hospital" },
+    { code: "281P00000X", desc: "Chronic Disease Hospital" },
+  ]},
+  { group: "Clinics & Group Practices", items: [
+    { code: "261Q00000X", desc: "Clinic/Center" },
+    { code: "261QM0801X", desc: "Clinic — Mental Health" },
+    { code: "261QP2300X", desc: "Clinic — Primary Care" },
+    { code: "261QU0200X", desc: "Clinic — Urgent Care" },
+    { code: "261QR0200X", desc: "Clinic — Radiology" },
+    { code: "261QR0206X", desc: "Clinic — Mammography" },
+    { code: "261QS0132X", desc: "Clinic — Surgery Center" },
+    { code: "261QX0203X", desc: "Clinic — Oncology" },
+    { code: "193200000X", desc: "Group Practice — Multi-Specialty" },
+    { code: "193400000X", desc: "Group Practice — Single Specialty" },
+  ]},
+  { group: "Home Health & Hospice", items: [
+    { code: "251E00000X", desc: "Home Health Agency" },
+    { code: "251G00000X", desc: "Hospice Care" },
+    { code: "251S00000X", desc: "Community/Behavioral Health Agency" },
+    { code: "253Z00000X", desc: "In Home Supportive Care" },
+  ]},
+  { group: "Long-term & Skilled Nursing", items: [
+    { code: "314000000X", desc: "Skilled Nursing Facility" },
+    { code: "315D00000X", desc: "Nursing Care (Custodial)" },
+    { code: "315P00000X", desc: "Intermediate Care Facility" },
+  ]},
+  { group: "Laboratories & Imaging", items: [
+    { code: "291U00000X", desc: "Clinical Medical Laboratory" },
+    { code: "292200000X", desc: "Dental Laboratory" },
+    { code: "291900000X", desc: "Military Clinical Medical Laboratory" },
+    { code: "293D00000X", desc: "Physiological Laboratory" },
+  ]},
+  { group: "Other Allied Health", items: [
+    { code: "246Z00000X", desc: "Specialist/Technologist, Health Info" },
+    { code: "225C00000X", desc: "Rehabilitation Counselor" },
+    { code: "222Q00000X", desc: "Developmental Therapist" },
+    { code: "220900000X", desc: "Dietary and Nutritional Counselor" },
+    { code: "2251X0800X", desc: "Physical Therapist — Orthopedic" },
+    { code: "225400000X", desc: "Specialist — Athletic Trainer" },
+    { code: "225600000X", desc: "Dance Therapist" },
+    { code: "225700000X", desc: "Massage Therapist" },
+    { code: "225800000X", desc: "Recreation Therapist" },
+    { code: "225A00000X", desc: "Music Therapist" },
+  ]},
+];
+
+// Flatten for search
+const ALL_TAXONOMIES = TAXONOMY_GROUPS.flatMap(g => g.items.map(i => ({ ...i, group: g.group })));
+
+// ─── Taxonomy UI ──────────────────────────────────────────────────────────────
+let selectedTaxonomy = null;
+let highlightIndex = -1;
+let filteredItems = [];
+
+const taxonomySearch = document.getElementById("taxonomySearch");
+const taxonomyDropdown = document.getElementById("taxonomyDropdown");
+const taxonomyClear = document.getElementById("taxonomyClear");
+
+function renderDropdown(items) {
+  if (!items.length) {
+    taxonomyDropdown.innerHTML = '<div class="taxonomy-option" style="color:#4a5568;cursor:default">No matches found</div>';
+    taxonomyDropdown.classList.add("open");
+    return;
+  }
+  const byGroup = {};
+  items.forEach(item => { if (!byGroup[item.group]) byGroup[item.group] = []; byGroup[item.group].push(item); });
+  let html = "";
+  for (const [group, groupItems] of Object.entries(byGroup)) {
+    html += '<div class="taxonomy-group-label">' + group + '</div>';
+    groupItems.forEach(item => {
+      const idx = items.indexOf(item);
+      const sel = selectedTaxonomy && selectedTaxonomy.code === item.code ? " selected" : "";
+      html += '<div class="taxonomy-option' + sel + '" data-idx="' + idx + '" onclick="selectTaxonomy(' + idx + ')">' +
+        '<span class="tax-code">' + item.code + '</span>' + item.desc + '</div>';
+    });
+  }
+  taxonomyDropdown.innerHTML = html;
+  taxonomyDropdown.classList.add("open");
+  filteredItems = items;
+  highlightIndex = -1;
+}
+
+function filterTaxonomies(query) {
+  if (!query.trim()) { renderDropdown(ALL_TAXONOMIES); return; }
+  const q = query.toLowerCase();
+  renderDropdown(ALL_TAXONOMIES.filter(t => t.desc.toLowerCase().includes(q) || t.code.toLowerCase().includes(q) || t.group.toLowerCase().includes(q)));
+}
+
+function selectTaxonomy(idx) {
+  selectedTaxonomy = filteredItems[idx];
+  taxonomySearch.value = selectedTaxonomy.desc;
+  taxonomyClear.style.display = "block";
+  taxonomyDropdown.classList.remove("open");
+}
+
+function clearTaxonomy() {
+  selectedTaxonomy = null;
+  taxonomySearch.value = "";
+  taxonomyClear.style.display = "none";
+  taxonomyDropdown.classList.remove("open");
+}
+
+taxonomySearch.addEventListener("focus", () => filterTaxonomies(taxonomySearch.value));
+taxonomySearch.addEventListener("input", () => {
+  selectedTaxonomy = null;
+  taxonomyClear.style.display = taxonomySearch.value ? "block" : "none";
+  filterTaxonomies(taxonomySearch.value);
+});
+taxonomySearch.addEventListener("keydown", e => {
+  const options = taxonomyDropdown.querySelectorAll(".taxonomy-option[data-idx]");
+  if (e.key === "ArrowDown") { e.preventDefault(); highlightIndex = Math.min(highlightIndex+1, options.length-1); options.forEach((o,i) => o.classList.toggle("highlighted", i===highlightIndex)); if(options[highlightIndex]) options[highlightIndex].scrollIntoView({block:"nearest"}); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); highlightIndex = Math.max(highlightIndex-1, 0); options.forEach((o,i) => o.classList.toggle("highlighted", i===highlightIndex)); }
+  else if (e.key === "Enter") { if(highlightIndex>=0) selectTaxonomy(parseInt(options[highlightIndex].dataset.idx)); else { taxonomyDropdown.classList.remove("open"); handleSearch(); } }
+  else if (e.key === "Escape") taxonomyDropdown.classList.remove("open");
+});
+document.addEventListener("click", e => { if (!e.target.closest(".taxonomy-wrap")) taxonomyDropdown.classList.remove("open"); });
+
+// ─── Provider helpers ─────────────────────────────────────────────────────────
+function parseProviderName(r) {
+  if (r.enumeration_type === "NPI-2") return (r.basic && (r.basic.organization_name || r.basic.name)) || "Unknown Organization";
+  const b = r.basic || {};
+  return [b.first_name, b.middle_name, b.last_name, b.credential].filter(Boolean).join(" ");
+}
+
+function getPracticeAddress(r) {
+  const addrs = r.addresses || [];
+  const a = addrs.find(x => x.address_purpose === "LOCATION") || addrs[0];
+  if (!a) return null;
+  return { line1: a.address_1, line2: a.address_2, city: a.city, state: a.state, zip: a.postal_code, phone: a.telephone_number, fax: a.fax_number };
+}
+
+function getTaxonomy(r) {
+  const taxs = r.taxonomies || [];
+  const t = taxs.find(x => x.primary) || taxs[0];
+  return t ? (t.desc || "") + (t.state ? " (" + t.state + ")" : "") : "";
+}
+
+function renderCard(r, index) {
+  const name = parseProviderName(r);
+  const addr = getPracticeAddress(r);
+  const taxonomy = getTaxonomy(r);
+  const isOrg = r.enumeration_type === "NPI-2";
+  const delay = Math.min(index, 20) * 40;
+  const addrHtml = addr ? (
+    '<div class="provider-address">' +
+    '<div class="addr-line">' + (addr.line1||"") + (addr.line2 ? ", "+addr.line2 : "") + "</div>" +
+    '<div class="addr-line">' + (addr.city||"") + ", " + (addr.state||"") + " " + (addr.zip||"") + "</div>" +
+    (addr.phone ? '<div class="addr-contact">&#128222; <a href="tel:' + addr.phone + '">' + addr.phone + "</a></div>" : "") +
+    (addr.fax  ? '<div class="addr-contact">&#128224; ' + addr.fax + "</div>" : "") +
+    "</div>"
+  ) : "";
+
+  return '<div class="provider-card" style="animation-delay:' + delay + 'ms">' +
+    '<div class="card-header">' +
+    '<div class="badge ' + (isOrg?"badge-org":"badge-ind") + '">' + (isOrg?"ORG":"IND") + "</div>" +
+    '<div class="provider-name">' + name + "</div>" +
+    '<div class="provider-npi">NPI: ' + r.number + "</div>" +
+    "</div>" +
+    (taxonomy ? '<div class="provider-taxonomy">' + taxonomy + "</div>" : "") +
+    addrHtml +
+    "</div>";
+}
+
+// ─── Map & Geocoding ──────────────────────────────────────────────────────────
+let leafletMap = null;
+let currentView = "list";
+let geocodedGroups = [];
+let geocodeAbortId = 0; // incremented on each new search to cancel stale geocoding loops
+
+function switchView(view) {
+  currentView = view;
+  document.getElementById("btnList").classList.toggle("active", view === "list");
+  document.getElementById("btnMap").classList.toggle("active", view === "map");
+  document.getElementById("resultsSection").style.display = view === "list" ? "block" : "none";
+  document.getElementById("mapContainer").style.display = view === "map" ? "block" : "none";
+  if (view === "map") {
+    if (!leafletMap) initMap();
+    else setTimeout(() => leafletMap.invalidateSize(), 50);
+  }
+}
+
+function initMap() {
+  leafletMap = L.map("map");
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+  }).addTo(leafletMap);
+  setTimeout(() => { leafletMap.invalidateSize(); plotMarkers(); }, 100);
+}
+
+function makePopupHtml(group) {
+  const isShared = group.providers.length > 1;
+  const addr = group.address;
+  const addrStr = addr ? [addr.line1, addr.city, addr.state, addr.zip].filter(Boolean).join(", ") : "";
+  let html = "";
+  if (isShared) html += '<div class="popup-count">' + group.providers.length + " providers at this location</div>";
+  group.providers.forEach(r => {
+    const tax = getTaxonomy(r);
+    html += '<div class="popup-name">' + parseProviderName(r) + "</div>";
+    if (tax) html += '<div class="popup-tax">' + tax + "</div>";
+  });
+  if (addrStr) html += '<div class="popup-addr">' + addrStr + "</div>";
+  if (group.phone) html += '<div class="popup-phone"><a href="tel:' + group.phone + '">&#128222; ' + group.phone + "</a></div>";
+  return html;
+}
+
+function plotMarkers() {
+  if (!leafletMap) return;
+  leafletMap.eachLayer(l => { if (l instanceof L.CircleMarker) leafletMap.removeLayer(l); });
+  const plotted = geocodedGroups.filter(g => g.lat && g.lng);
+  if (!plotted.length) { document.getElementById("geocodeStatus").textContent = "Geocoding in progress…"; return; }
+  const bounds = [];
+  plotted.forEach(group => {
+    const isShared = group.providers.length > 1;
+    const color = isShared ? "#63b3ed" : "#6ee7b7";
+    const radius = isShared ? Math.min(8 + group.providers.length * 2, 22) : 7;
+    L.circleMarker([group.lat, group.lng], {
+      radius, fillColor: color, color: "rgba(0,0,0,0.35)", weight: 1.5, opacity: 1, fillOpacity: 0.85
+    }).addTo(leafletMap).bindPopup(makePopupHtml(group), { maxWidth: 300, minWidth: 200 });
+    bounds.push([group.lat, group.lng]);
+  });
+  if (bounds.length) leafletMap.fitBounds(bounds, { padding: [50, 50] });
+}
+
+async function geocodeGroups(groups, abortId) {
+  const status = document.getElementById("geocodeStatus");
+  geocodedGroups = groups.map(g => Object.assign({}, g, { lat: null, lng: null }));
+  const toGeocode = geocodedGroups.filter(g => g.address && g.address.line1);
+  let done = 0;
+  status.textContent = "Geocoding 0 / " + toGeocode.length + " addresses…";
+  for (const group of toGeocode) {
+    if (geocodeAbortId !== abortId) return; // new search started — abort this loop
+    const addr = group.address;
+    const q = [addr.line1, addr.city, addr.state, "USA"].filter(Boolean).join(", ");
+    try {
+      const res = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(q), {
+        headers: { "Accept-Language": "en", "User-Agent": "NPPES-Provider-Search/1.0" }
+      });
+      const data = await res.json();
+      if (data && data[0]) { group.lat = parseFloat(data[0].lat); group.lng = parseFloat(data[0].lon); }
+    } catch(e) { /* skip */ }
+    done++;
+    if (geocodeAbortId !== abortId) return; // check again after await
+    status.textContent = "Geocoding " + done + " / " + toGeocode.length + "…";
+    await new Promise(r => setTimeout(r, 1100));
+  }
+  if (geocodeAbortId !== abortId) return;
+  const geocoded = geocodedGroups.filter(g => g.lat).length;
+  status.textContent = geocoded + " of " + toGeocode.length + " addresses mapped";
+  if (currentView === "map" && leafletMap) {
+    setTimeout(() => { leafletMap.invalidateSize(); plotMarkers(); }, 50);
+  } else if (currentView === "map") initMap();
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+const API_BASE = "http://localhost:3001/api/?version=2.1";
+
+document.getElementById("zipInput").addEventListener("keydown", e => { if (e.key === "Enter") handleSearch(); });
+
+function parseZips(input) {
+  return input.split(/[\s,;]+/).map(z => z.trim()).filter(z => z.length >= 3 && /^\d+$/.test(z));
+}
+
+function showError(msg) { document.getElementById("errorMsg").textContent = msg; document.getElementById("errorBox").style.display = "block"; }
+function hideError() { document.getElementById("errorBox").style.display = "none"; }
+
+function setLoading(on) {
+  const btn = document.getElementById("searchBtn");
+  btn.disabled = on; btn.textContent = on ? "Searching…" : "Search";
+  if (on) {
+    document.getElementById("viewToggle").style.display = "none";
+    document.getElementById("resultsSection").style.display = "block";
+    document.getElementById("mapContainer").style.display = "none";
+    document.getElementById("resultsSection").innerHTML = '<div class="loading"><div class="spinner"></div><div class="loading-txt">Querying NPPES registry…</div></div>';
+  }
+}
+
+async function fetchForZip(zip, entityType, state, taxonomyDesc) {
+  let url = API_BASE + "&postal_code=" + encodeURIComponent(zip);
+  if (entityType) url += "&enumeration_type=" + entityType;
+  if (state) url += "&state=" + encodeURIComponent(state);
+  if (taxonomyDesc) url += "&taxonomy_description=" + encodeURIComponent(taxonomyDesc);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.results || [];
+}
+
+async function handleSearch() {
+  const zipInput = document.getElementById("zipInput").value;
+  const entityType = document.getElementById("entityType").value;
+  const state = document.getElementById("stateFilter").value;
+  const taxonomyDesc = selectedTaxonomy ? selectedTaxonomy.desc : (taxonomySearch.value.trim() || "");
+  const zips = parseZips(zipInput);
+  hideError();
+  if (!zips.length) { showError("Enter at least one zip code (minimum 3 digits, numbers only)."); return; }
+
+  setLoading(true);
+
+  try {
+    const allResults = []; const seen = new Set();
+    await Promise.all(zips.map(async zip => {
+      const data = await fetchForZip(zip, entityType, state, taxonomyDesc);
+      data.forEach(r => { if (!seen.has(r.number)) { seen.add(r.number); allResults.push(r); } });
+    }));
+
+    // Group by shared phone
+    const groupMap = {};
+    allResults.forEach(r => {
+      const addr = getPracticeAddress(r);
+      const phone = (addr && addr.phone) ? addr.phone.replace(/\D/g,"") : "";
+      const key = phone || ("__solo__" + r.number);
+      if (!groupMap[key]) groupMap[key] = { phone: (addr && addr.phone) || null, address: addr, providers: [] };
+      groupMap[key].providers.push(r);
+    });
+
+    // Sort within groups
+    const groupList = Object.values(groupMap);
+    groupList.forEach(g => g.providers.sort((a,b) => parseProviderName(a).toLowerCase().localeCompare(parseProviderName(b).toLowerCase())));
+
+    // Sort groups: shared first by size, then solos alpha
+    groupList.sort((a,b) => {
+      if (a.providers.length > 1 && b.providers.length === 1) return -1;
+      if (a.providers.length === 1 && b.providers.length > 1) return 1;
+      if (a.providers.length !== b.providers.length) return b.providers.length - a.providers.length;
+      return parseProviderName(a.providers[0]).toLowerCase().localeCompare(parseProviderName(b.providers[0]).toLowerCase());
+    });
+
+    // Build filter tags
+    const tags = zips.map(z => '<span class="filter-tag">&#128205; ' + z + "</span>").join("");
+    const entityTag = entityType ? '<span class="filter-tag">' + (entityType==="NPI-1"?"Individuals":"Organizations") + "</span>" : "";
+    const stateTag = state ? '<span class="filter-tag">&#128506; ' + state + "</span>" : "";
+    const taxTag = taxonomyDesc ? '<span class="filter-tag">&#127973; ' + taxonomyDesc + "</span>" : "";
+    const sharedCount = groupList.filter(g => g.providers.length > 1).length;
+    const sharedTag = sharedCount > 0 ? '<span class="filter-tag">&#127970; ' + sharedCount + " shared office" + (sharedCount>1?"s":"") + "</span>" : "";
+
+    // Render groups
+    let cardIndex = 0;
+    const groupsHtml = groupList.map(g => {
+      const isShared = g.providers.length > 1;
+      const addrStr = g.address ? [g.address.line1, g.address.city, g.address.state].filter(Boolean).join(", ") : "";
+      const header = '<div class="group-header' + (isShared?"":" solo") + '">' +
+        '<span class="group-phone' + (isShared?"":" solo") + '">' + (g.phone ? "&#128222; "+g.phone : "No phone listed") + "</span>" +
+        '<span class="group-count' + (isShared?"":" solo") + '">' + g.providers.length + " provider" + (g.providers.length>1?"s":"") + "</span>" +
+        (addrStr ? '<span class="group-address">' + addrStr + "</span>" : "") +
+        "</div>";
+      const cards = g.providers.map(r => renderCard(r, cardIndex++)).join("");
+      return '<div class="practice-group">' + header + '<div class="grid">' + cards + "</div></div>";
+    }).join("");
+
+    const cardsHtml = allResults.length > 0 ? groupsHtml :
+      '<div class="empty"><div class="empty-icon">&#128269;</div><div class="empty-title">No results found</div><div class="empty-sub">Try adjusting your filters</div></div>';
+
+    document.getElementById("resultsSection").innerHTML =
+      '<div class="results-head"><div>' +
+      '<div class="results-count"><span>' + allResults.length.toLocaleString() + "</span> provider" + (allResults.length!==1?"s":"") + " found</div>" +
+      '<div class="filter-tags">' + tags + entityTag + stateTag + taxTag + sharedTag + "</div>" +
+      '</div><div class="results-meta">Live NPPES data &middot; ' + allResults.length.toLocaleString() + " records</div></div>" +
+      cardsHtml;
+
+    // Show the view toggle
+    document.getElementById("viewToggle").style.display = "block";
+    switchView("list");
+
+    // Reset map and start geocoding in background
+    if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+    geocodedGroups = [];
+    const myAbortId = ++geocodeAbortId;
+    geocodeGroups(groupList, myAbortId);
+
+  } catch(e) {
+    document.getElementById("resultsSection").innerHTML = "";
+    document.getElementById("resultsSection").style.display = "none";
+    if (e.message.includes("fetch") || e.message.includes("Network") || e.message.includes("Failed")) {
+      showError("Cannot reach proxy. Make sure server.js is running: node server.js");
+    } else {
+      showError("Search failed: " + e.message);
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
+</script>
+</body>
+</html>
