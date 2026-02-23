@@ -126,6 +126,67 @@
     .empty-title{font-family:'Syne',sans-serif;font-size:16px;color:#718096;margin-bottom:4px}
     .empty-sub{font-size:12px;color:#4a5568}
     ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:rgba(99,179,237,.2);border-radius:3px}
+
+    /* ── Follow-up feature ── */
+    /* Page tabs */
+    .page-tabs{max-width:960px;margin:18px auto 0;padding:0 24px;display:flex;gap:6px}
+    .page-tab{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;padding:9px 20px;border-radius:7px 7px 0 0;border:1px solid rgba(255,255,255,.1);border-bottom:none;background:rgba(255,255,255,.03);color:#8892a4;cursor:pointer;transition:all .2s;position:relative}
+    .page-tab.active{background:rgba(99,179,237,.12);border-color:rgba(99,179,237,.3);color:#63b3ed}
+    .page-tab:hover:not(.active){background:rgba(255,255,255,.06);color:#c8d0e0}
+    .tab-badge{display:inline-block;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fbbf24;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;vertical-align:middle}
+    .page-tab.active .tab-badge{background:rgba(251,191,36,.25)}
+
+    /* Bookmark button on group header */
+    .bookmark-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:5px;color:#4a5568;cursor:pointer;font-size:13px;padding:3px 7px;transition:all .2s;flex-shrink:0;line-height:1}
+    .bookmark-btn:hover{border-color:rgba(251,191,36,.5);color:#fbbf24;background:rgba(251,191,36,.08)}
+    .bookmark-btn.bookmarked{border-color:rgba(251,191,36,.6);color:#fbbf24;background:rgba(251,191,36,.12)}
+
+    /* Note modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+    .modal{background:#0d1629;border:1px solid rgba(99,179,237,.3);border-radius:14px;padding:28px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+    .modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#f0f4ff;margin-bottom:4px}
+    .modal-sub{font-size:12px;color:#8892a4;margin-bottom:16px;line-height:1.5}
+    .modal-providers{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:10px 12px;margin-bottom:16px;max-height:120px;overflow-y:auto}
+    .modal-provider-row{font-size:12px;color:#c8d0e0;padding:2px 0;font-family:'DM Mono',monospace}
+    .modal textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:10px 13px;font-family:'DM Sans',sans-serif;font-size:13px;color:#e8eaf0;resize:vertical;min-height:80px;outline:none;transition:border-color .2s}
+    .modal textarea:focus{border-color:#63b3ed;box-shadow:0 0 0 3px rgba(99,179,237,.12)}
+    .modal textarea::placeholder{color:#4a5568}
+    .modal-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+    .modal-btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;padding:8px 18px;border-radius:6px;cursor:pointer;transition:all .2s;border:none}
+    .modal-btn.cancel{background:rgba(255,255,255,.06);color:#8892a4;border:1px solid rgba(255,255,255,.1)}
+    .modal-btn.cancel:hover{background:rgba(255,255,255,.1);color:#c8d0e0}
+    .modal-btn.save{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
+    .modal-btn.save:hover{opacity:.9}
+    .modal-btn.remove{background:rgba(245,101,101,.15);color:#fc8181;border:1px solid rgba(245,101,101,.3)}
+    .modal-btn.remove:hover{background:rgba(245,101,101,.25)}
+
+    /* Follow-up panel */
+    .followup-panel{max-width:960px;margin:0 auto;padding:0 24px 40px;display:none}
+    .followup-panel.active{display:block}
+    .followup-empty{text-align:center;padding:60px 24px}
+    .followup-empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+    .followup-empty-title{font-family:'Syne',sans-serif;font-size:16px;color:#718096;margin-bottom:4px}
+    .followup-empty-sub{font-size:12px;color:#4a5568}
+    .followup-item{background:rgba(255,255,255,.03);border:1px solid rgba(251,191,36,.15);border-radius:11px;padding:16px;margin-bottom:10px;position:relative}
+    .followup-item:hover{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.03)}
+    .followup-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .followup-group-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#f0f4ff}
+    .followup-date{font-family:'DM Mono',monospace;font-size:9px;color:#4a5568;flex-shrink:0;padding-top:2px}
+    .followup-providers{margin-bottom:8px}
+    .followup-provider-row{font-size:12px;color:#c8d0e0;padding:1px 0;line-height:1.5}
+    .followup-provider-spec{font-size:11px;color:#63b3ed;font-style:italic}
+    .followup-address{font-size:11px;color:#8892a4;margin-bottom:6px;font-family:'DM Mono',monospace}
+    .followup-phone{font-family:'DM Mono',monospace;font-size:11px;margin-bottom:8px}
+    .followup-phone a{color:#63b3ed;text-decoration:none}
+    .followup-phone a:hover{text-decoration:underline}
+    .followup-note{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:6px;padding:8px 11px;font-size:12px;color:#e8c96a;line-height:1.5;margin-bottom:8px}
+    .followup-note-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#d97706;margin-bottom:3px}
+    .followup-actions{display:flex;gap:6px}
+    .followup-action-btn{font-family:'DM Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer;transition:all .2s;border:none}
+    .followup-action-btn.edit{background:rgba(99,179,237,.1);color:#63b3ed;border:1px solid rgba(99,179,237,.2)}
+    .followup-action-btn.edit:hover{background:rgba(99,179,237,.2)}
+    .followup-action-btn.delete{background:rgba(245,101,101,.1);color:#fc8181;border:1px solid rgba(245,101,101,.2)}
+    .followup-action-btn.delete:hover{background:rgba(245,101,101,.2)}
   </style>
 </head>
 <body>
@@ -139,9 +200,18 @@
     </div>
   </div>
 
+  <!-- Page Tabs -->
+  <div class="page-tabs">
+    <div class="page-tab active" id="tabSearch" onclick="switchTab('search')">&#128269; Search</div>
+    <div class="page-tab" id="tabFollowup" onclick="switchTab('followup')">&#128278; Follow-ups <span class="tab-badge" id="followupBadge" style="display:none">0</span></div>
+  </div>
+
+  <!-- Search Page -->
+  <div id="searchPage">
+
   <div class="notice">
     <div class="notice-inner">
-      <strong>&#9881; Requires local proxy:</strong> Make sure <code>node server.js</code> is running in your terminal on <code>http://localhost:3001</code>, then search below.
+      <strong>&#9881; Requires proxy:</strong> Make sure the proxy server is running, then search below.
     </div>
   </div>
 
@@ -218,6 +288,26 @@
   <!-- Map -->
   <div id="mapContainer">
     <div id="map"></div>
+  </div>
+
+  </div><!-- /#searchPage -->
+
+  <!-- Follow-up Panel -->
+  <div class="followup-panel" id="followupPage"></div>
+
+  <!-- Note Modal -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="handleOverlayClick(event)">
+    <div class="modal" id="modal">
+      <div class="modal-title" id="modalTitle">Mark as Follow-up</div>
+      <div class="modal-sub" id="modalSub"></div>
+      <div class="modal-providers" id="modalProviders"></div>
+      <textarea id="modalNote" placeholder="Add a note about why this is a follow-up… (optional)"></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn remove" id="modalRemoveBtn" onclick="removeFollowup()" style="display:none">Remove Follow-up</button>
+        <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn save" onclick="saveFollowup()">Save Follow-up</button>
+      </div>
+    </div>
   </div>
 
 </div><!-- /.app -->
@@ -500,6 +590,7 @@ let leafletMap = null;
 let currentView = "list";
 let geocodedGroups = [];
 let geocodeAbortId = 0; // incremented on each new search to cancel stale geocoding loops
+let currentGroupList = []; // kept for bookmark modal access
 
 function switchView(view) {
   currentView = view;
@@ -587,7 +678,7 @@ async function geocodeGroups(groups, abortId) {
 }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
-const API_BASE = "https://nppes-proxy-production.up.railway.app/api/?version=2.1";
+const API_BASE = "http://localhost:3001/api/?version=2.1";
 
 document.getElementById("zipInput").addEventListener("keydown", e => { if (e.key === "Enter") handleSearch(); });
 
@@ -661,6 +752,8 @@ async function handleSearch() {
       return parseProviderName(a.providers[0]).toLowerCase().localeCompare(parseProviderName(b.providers[0]).toLowerCase());
     });
 
+    currentGroupList = groupList;
+
     // Build filter tags
     const tags = zips.map(z => '<span class="filter-tag">&#128205; ' + z + "</span>").join("");
     const entityTag = entityType ? '<span class="filter-tag">' + (entityType==="NPI-1"?"Individuals":"Organizations") + "</span>" : "";
@@ -671,13 +764,16 @@ async function handleSearch() {
 
     // Render groups
     let cardIndex = 0;
-    const groupsHtml = groupList.map(g => {
+    const groupsHtml = groupList.map((g, gIdx) => {
       const isShared = g.providers.length > 1;
       const addrStr = g.address ? [g.address.line1, g.address.city, g.address.state].filter(Boolean).join(", ") : "";
+      const groupKey = makeGroupKey(g);
+      const isBookmarked = !!followups[groupKey];
       const header = '<div class="group-header' + (isShared?"":" solo") + '">' +
         '<span class="group-phone' + (isShared?"":" solo") + '">' + (g.phone ? "&#128222; "+g.phone : "No phone listed") + "</span>" +
         '<span class="group-count' + (isShared?"":" solo") + '">' + g.providers.length + " provider" + (g.providers.length>1?"s":"") + "</span>" +
         (addrStr ? '<span class="group-address">' + addrStr + "</span>" : "") +
+        '<button class="bookmark-btn' + (isBookmarked?" bookmarked":"") + '" id="bmbtn-' + gIdx + '" onclick="openModal(' + gIdx + ')" title="' + (isBookmarked?"Edit follow-up":"Mark as follow-up") + '">' + (isBookmarked?"&#128278;":"&#128204;") + "</button>" +
         "</div>";
       const cards = g.providers.map(r => renderCard(r, cardIndex++)).join("");
       return '<div class="practice-group">' + header + '<div class="grid">' + cards + "</div></div>";
@@ -715,6 +811,201 @@ async function handleSearch() {
     setLoading(false);
   }
 }
+// ─── Follow-up System ────────────────────────────────────────────────────────
+const STORAGE_KEY = "nppes_followups";
+let followups = {}; // keyed by groupKey
+let modalGroupIdx = null;
+
+function loadFollowups() {
+  try { followups = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e) { followups = {}; }
+}
+
+function saveFollowups() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(followups)); } catch(e) {}
+  updateFollowupBadge();
+}
+
+function makeGroupKey(g) {
+  // Stable key: sorted NPIs joined
+  const npis = g.providers.map(r => r.number).sort().join(",");
+  return npis;
+}
+
+function updateFollowupBadge() {
+  const count = Object.keys(followups).length;
+  const badge = document.getElementById("followupBadge");
+  badge.style.display = count > 0 ? "inline-block" : "none";
+  badge.textContent = count;
+}
+
+function switchTab(tab) {
+  document.getElementById("tabSearch").classList.toggle("active", tab === "search");
+  document.getElementById("tabFollowup").classList.toggle("active", tab === "followup");
+  document.getElementById("searchPage").style.display = tab === "search" ? "block" : "none";
+  const fp = document.getElementById("followupPage");
+  fp.style.display = tab === "followup" ? "block" : "none";
+  if (tab === "followup") renderFollowupPage();
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openModal(groupIdx) {
+  modalGroupIdx = groupIdx;
+  const g = currentGroupList[groupIdx];
+  const key = makeGroupKey(g);
+  const existing = followups[key];
+
+  document.getElementById("modalTitle").textContent = existing ? "Edit Follow-up" : "Mark as Follow-up";
+  const addrStr = g.address ? [g.address.line1, g.address.city, g.address.state].filter(Boolean).join(", ") : "";
+  document.getElementById("modalSub").textContent = addrStr || "No address on file";
+
+  // List providers in modal
+  const provHtml = g.providers.map(r => {
+    const tax = getTaxonomy(r);
+    return '<div class="modal-provider-row">' + parseProviderName(r) + (tax ? ' <span style="color:#63b3ed;font-size:10px">— ' + tax + "</span>" : "") + "</div>";
+  }).join("");
+  document.getElementById("modalProviders").innerHTML = provHtml;
+
+  document.getElementById("modalNote").value = existing ? (existing.note || "") : "";
+  document.getElementById("modalRemoveBtn").style.display = existing ? "inline-block" : "none";
+  document.getElementById("modalOverlay").style.display = "flex";
+  setTimeout(() => document.getElementById("modalNote").focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+  modalGroupIdx = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById("modalOverlay")) closeModal();
+}
+
+function saveFollowup() {
+  if (modalGroupIdx === null) return;
+  const g = currentGroupList[modalGroupIdx];
+  const key = makeGroupKey(g);
+  const note = document.getElementById("modalNote").value.trim();
+  const addr = g.address;
+
+  followups[key] = {
+    key,
+    note,
+    dateMarked: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    phone: g.phone || null,
+    address: addr ? { line1: addr.line1, line2: addr.line2||"", city: addr.city, state: addr.state, zip: addr.zip } : null,
+    providers: g.providers.map(r => ({
+      npi: r.number,
+      name: parseProviderName(r),
+      taxonomy: getTaxonomy(r),
+      type: r.enumeration_type
+    }))
+  };
+
+  saveFollowups();
+  closeModal();
+  refreshBookmarkBtn(modalGroupIdx === null ? -1 : modalGroupIdx, key, true);
+}
+
+function removeFollowup() {
+  if (modalGroupIdx === null) return;
+  const g = currentGroupList[modalGroupIdx];
+  const key = makeGroupKey(g);
+  delete followups[key];
+  saveFollowups();
+  closeModal();
+  refreshBookmarkBtn(modalGroupIdx === null ? -1 : modalGroupIdx, key, false);
+}
+
+function refreshBookmarkBtn(idx, key, isBookmarked) {
+  const btn = document.getElementById("bmbtn-" + idx);
+  if (btn) {
+    btn.className = "bookmark-btn" + (isBookmarked ? " bookmarked" : "");
+    btn.innerHTML = isBookmarked ? "&#128278;" : "&#128204;";
+    btn.title = isBookmarked ? "Edit follow-up" : "Mark as follow-up";
+  }
+}
+
+// ── Follow-up Page ────────────────────────────────────────────────────────────
+function renderFollowupPage() {
+  const panel = document.getElementById("followupPage");
+  const items = Object.values(followups);
+
+  if (!items.length) {
+    panel.innerHTML = '<div class="followup-empty"><div class="followup-empty-icon">&#128278;</div><div class="followup-empty-title">No follow-ups yet</div><div class="followup-empty-sub">Click the bookmark icon on any provider group in search results to mark it for follow-up.</div></div>';
+    return;
+  }
+
+  // Sort by date marked, most recent first
+  items.sort((a, b) => new Date(b.dateMarked) - new Date(a.dateMarked));
+
+  const html = items.map(item => {
+    const addrStr = item.address ? [item.address.line1, item.address.city, item.address.state, item.address.zip].filter(Boolean).join(", ") : "";
+    const providersHtml = item.providers.map(p =>
+      '<div class="followup-provider-row">' + p.name +
+      (p.taxonomy ? ' &nbsp;<span class="followup-provider-spec">' + p.taxonomy + "</span>" : "") +
+      "</div>"
+    ).join("");
+
+    const groupLabel = item.providers.length === 1
+      ? item.providers[0].name
+      : item.providers.length + " providers · " + (item.address ? (item.address.city || "") : "");
+
+    return '<div class="followup-item" id="fui-' + item.key + '">' +
+      '<div class="followup-header">' +
+      '<div class="followup-group-name">' + groupLabel + "</div>" +
+      '<div class="followup-date">&#128197; ' + item.dateMarked + "</div>" +
+      "</div>" +
+      '<div class="followup-providers">' + providersHtml + "</div>" +
+      (addrStr ? '<div class="followup-address">&#128205; ' + addrStr + "</div>" : "") +
+      (item.phone ? '<div class="followup-phone">&#128222; <a href="tel:' + item.phone + '">' + item.phone + "</a></div>" : "") +
+      (item.note ? '<div class="followup-note"><div class="followup-note-label">Note</div>' + escapeHtml(item.note) + "</div>" : "") +
+      '<div class="followup-actions">' +
+      '<button class="followup-action-btn edit" onclick="editFollowupFromPanel(\'' + item.key + '\')">&#9998; Edit Note</button>' +
+      '<button class="followup-action-btn delete" onclick="deleteFollowupFromPanel(\'' + item.key + '\')">&#10005; Remove</button>' +
+      "</div>" +
+      "</div>";
+  }).join("");
+
+  panel.innerHTML = '<div style="max-width:960px;margin:20px auto 0;padding:0">' +
+    '<div style="font-family:\'Syne\',sans-serif;font-size:17px;font-weight:700;color:#f0f4ff;margin-bottom:14px"><span style="color:#fbbf24">' + items.length + "</span> follow-up" + (items.length!==1?"s":"") + "</div>" +
+    html + "</div>";
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+}
+
+// Edit from follow-up panel — opens a mini inline modal
+function editFollowupFromPanel(key) {
+  const item = followups[key];
+  if (!item) return;
+
+  // Re-use the modal but synthesize a fake group for it
+  // We'll open a simpler inline note editor
+  const note = prompt("Edit your follow-up note:", item.note || "");
+  if (note === null) return; // cancelled
+  followups[key].note = note.trim();
+  saveFollowups();
+  renderFollowupPage();
+}
+
+function deleteFollowupFromPanel(key) {
+  if (!confirm("Remove this follow-up?")) return;
+  delete followups[key];
+  saveFollowups();
+  renderFollowupPage();
+  // Also update bookmark button if the group is currently visible in search
+  currentGroupList.forEach((g, idx) => {
+    if (makeGroupKey(g) === key) refreshBookmarkBtn(idx, key, false);
+  });
+}
+
+// Init
+loadFollowups();
+updateFollowupBadge();
+
+// Keyboard: close modal on Escape
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
 </script>
 </body>
