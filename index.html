@@ -678,7 +678,7 @@ async function geocodeGroups(groups, abortId) {
 }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
-const API_BASE = "https://nppes-proxy-production.up.railway.app/api/?version=2.1";
+const API_BASE = "http://localhost:3001/api/?version=2.1";
 
 document.getElementById("zipInput").addEventListener("keydown", e => { if (e.key === "Enter") handleSearch(); });
 
@@ -885,20 +885,24 @@ function saveFollowup() {
   const g = currentGroupList[modalGroupIdx];
   const key = makeGroupKey(g);
   const note = document.getElementById("modalNote").value.trim();
-  const addr = g.address;
 
   followups[key] = {
     key,
     note,
     dateMarked: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-    phone: g.phone || null,
-    address: addr ? { line1: addr.line1, line2: addr.line2||"", city: addr.city, state: addr.state, zip: addr.zip } : null,
-    providers: g.providers.map(r => ({
-      npi: r.number,
-      name: parseProviderName(r),
-      taxonomy: getTaxonomy(r),
-      type: r.enumeration_type
-    }))
+    groupPhone: g.phone || null,
+    providers: g.providers.map(r => {
+      const a = getPracticeAddress(r);
+      return {
+        npi: r.number,
+        name: parseProviderName(r),
+        taxonomy: getTaxonomy(r),
+        type: r.enumeration_type,
+        address: a ? { line1: a.line1||"", line2: a.line2||"", city: a.city||"", state: a.state||"", zip: a.zip||"" } : null,
+        phone: a ? (a.phone || null) : null,
+        fax: a ? (a.fax || null) : null
+      };
+    })
   };
 
   saveFollowups();
@@ -939,25 +943,52 @@ function renderFollowupPage() {
   items.sort((a, b) => new Date(b.dateMarked) - new Date(a.dateMarked));
 
   const html = items.map(item => {
-    const addrStr = item.address ? [item.address.line1, item.address.city, item.address.state, item.address.zip].filter(Boolean).join(", ") : "";
-    const providersHtml = item.providers.map(p =>
-      '<div class="followup-provider-row">' + p.name +
-      (p.taxonomy ? ' &nbsp;<span class="followup-provider-spec">' + p.taxonomy + "</span>" : "") +
-      "</div>"
-    ).join("");
+    const isShared = item.providers.length > 1;
 
+    // Group label: use first provider's city or group phone
+    const firstAddr = item.providers[0].address;
+    const cityStr = firstAddr ? firstAddr.city : "";
     const groupLabel = item.providers.length === 1
       ? item.providers[0].name
-      : item.providers.length + " providers · " + (item.address ? (item.address.city || "") : "");
+      : item.providers.length + " providers" + (cityStr ? " · " + cityStr : "") + (item.groupPhone ? " · " + item.groupPhone : "");
+
+    // Render each provider as a mini card matching the search results style
+    const providerCardsHtml = item.providers.map(p => {
+      const isOrg = p.type === "NPI-2";
+      const addr = p.address;
+      const addrHtml = addr ? (
+        '<div class="provider-address">' +
+        (addr.line1 ? '<div class="addr-line">' + addr.line1 + (addr.line2 ? ", " + addr.line2 : "") + "</div>" : "") +
+        (addr.city ? '<div class="addr-line">' + addr.city + ", " + addr.state + " " + addr.zip + "</div>" : "") +
+        (p.phone ? '<div class="addr-contact">&#128222; <a href="tel:' + p.phone + '">' + p.phone + "</a></div>" : "") +
+        (p.fax ? '<div class="addr-contact">&#128224; ' + p.fax + "</div>" : "") +
+        "</div>"
+      ) : "";
+
+      return '<div class="provider-card">' +
+        '<div class="card-header">' +
+        '<div class="badge ' + (isOrg ? "badge-org" : "badge-ind") + '">' + (isOrg ? "ORG" : "IND") + "</div>" +
+        '<div class="provider-name">' + p.name + "</div>" +
+        '<div class="provider-npi">NPI: ' + p.npi + "</div>" +
+        "</div>" +
+        (p.taxonomy ? '<div class="provider-taxonomy">' + p.taxonomy + "</div>" : "") +
+        addrHtml +
+        "</div>";
+    }).join("");
+
+    // Group header matching search results style
+    const groupHeaderHtml = '<div class="group-header' + (isShared ? "" : " solo") + '" style="margin-bottom:8px">' +
+      '<span class="group-phone' + (isShared ? "" : " solo") + '">' + (item.groupPhone ? "&#128222; " + item.groupPhone : "No phone listed") + "</span>" +
+      '<span class="group-count' + (isShared ? "" : " solo") + '">' + item.providers.length + " provider" + (item.providers.length > 1 ? "s" : "") + "</span>" +
+      "</div>";
 
     return '<div class="followup-item" id="fui-' + item.key + '">' +
       '<div class="followup-header">' +
       '<div class="followup-group-name">' + groupLabel + "</div>" +
       '<div class="followup-date">&#128197; ' + item.dateMarked + "</div>" +
       "</div>" +
-      '<div class="followup-providers">' + providersHtml + "</div>" +
-      (addrStr ? '<div class="followup-address">&#128205; ' + addrStr + "</div>" : "") +
-      (item.phone ? '<div class="followup-phone">&#128222; <a href="tel:' + item.phone + '">' + item.phone + "</a></div>" : "") +
+      groupHeaderHtml +
+      '<div class="grid" style="margin-bottom:10px">' + providerCardsHtml + "</div>" +
       (item.note ? '<div class="followup-note"><div class="followup-note-label">Note</div>' + escapeHtml(item.note) + "</div>" : "") +
       '<div class="followup-actions">' +
       '<button class="followup-action-btn edit" onclick="editFollowupFromPanel(\'' + item.key + '\')">&#9998; Edit Note</button>' +
@@ -966,8 +997,8 @@ function renderFollowupPage() {
       "</div>";
   }).join("");
 
-  panel.innerHTML = '<div style="max-width:960px;margin:20px auto 0;padding:0">' +
-    '<div style="font-family:\'Syne\',sans-serif;font-size:17px;font-weight:700;color:#f0f4ff;margin-bottom:14px"><span style="color:#fbbf24">' + items.length + "</span> follow-up" + (items.length!==1?"s":"") + "</div>" +
+  panel.innerHTML = '<div style="padding:20px 0 0">' +
+    '<div style="font-family:\'Syne\',sans-serif;font-size:17px;font-weight:700;color:#f0f4ff;margin-bottom:14px"><span style="color:#fbbf24">' + items.length + "</span> follow-up" + (items.length !== 1 ? "s" : "") + "</div>" +
     html + "</div>";
 }
 
