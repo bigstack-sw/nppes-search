@@ -678,7 +678,7 @@ async function geocodeGroups(groups, abortId) {
 }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
-const API_BASE = "http://localhost:3001/api/?version=2.1";
+const API_BASE = "https://nppes-proxy-production.up.railway.app/api/?version=2.1";
 
 document.getElementById("zipInput").addEventListener("keydown", e => { if (e.key === "Enter") handleSearch(); });
 
